@@ -20,6 +20,7 @@ import time
 
 from . import __version__, config as configuration, firefox
 from .methods import (
+    ADMIN_STRMQT,
     BareMetal,
     Docker,
     compose_file,
@@ -211,7 +212,7 @@ def install_baremetal(session: Session, args) -> int:
         raise Failure("Install those, then run `strmqtctl install` again.")
     code, _ = session.output(method.admin(["help"]))
     if code != 0:
-        raise Failure(f"The StrmQt on {where} has no `strmqt admin`: it needs StrmQt 0.9.2 or newer.")
+        raise Failure(f"The StrmQt on {where} has no `strmqt admin`: {ADMIN_STRMQT}.")
     if session.admin(["host", "setup"]) != 0:
         raise Failure("The streaming host was not set up.")
     return wait_until_up(session)

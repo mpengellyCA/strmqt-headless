@@ -13,6 +13,12 @@ from importlib import resources
 
 STRMQT_RELEASES = "https://github.com/mpengellyCA/strmQt-linux/releases"
 SUNSHINE_RELEASES = "https://github.com/LizardByte/Sunshine/releases"
+# No StrmQt release has `strmqt admin` yet: its `headless` branch does, and
+# publishes experimental builds for the Docker image only.
+ADMIN_STRMQT = (
+    "no StrmQt release has it yet. It is on StrmQt's `headless` branch, whose experimental "
+    f"builds (an Ubuntu 26.04 .deb) are the pre-releases at {STRMQT_RELEASES} named v<version>-headless.<n>"
+)
 UNITS = ("strmqt-host.service", "strmqt-host-sunshine.service", "strmqt-host-audio.service")
 # What a bare-metal host needs on its PATH.
 PROGRAMS = ("strmqt", "sunshine", "kwin_wayland", "pipewire", "wireplumber")
@@ -131,7 +137,7 @@ def install_hints(os_release: str, missing: list[str]) -> list[str]:
         else:
             hints.append("Install your distribution's packages for: " + ", ".join(system))
     if "strmqt" in missing:
-        hints.append(f"StrmQt 0.9.2 or newer, your distribution's package from {STRMQT_RELEASES}")
+        hints.append(f"A StrmQt with `strmqt admin`: {ADMIN_STRMQT}")
     if "sunshine" in missing:
         hints.append(f"Sunshine (a 2026 release), your distribution's package from {SUNSHINE_RELEASES}")
     return hints

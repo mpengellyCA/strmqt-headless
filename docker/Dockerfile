@@ -4,12 +4,16 @@
 # StrmQt on it, and a Sunshine that streams that screen to StrmLight.
 #
 # Everything comes from the projects' own release packages, checked against
-# the SHA-256 GitHub records for each. A StrmQt .deb placed in packages/
-# is installed instead of the release's, for trying a build before it ships.
+# the SHA-256 GitHub records for each. StrmQt's is an experimental build of
+# its `headless` branch (StrmQt's AGENTS.md), the only StrmQt with
+# `strmqt admin` so far: STRMQT_RELEASE names that pre-release, and the
+# release workflow finds its Ubuntu 26.04 package and digest. A StrmQt .deb
+# placed in packages/ is installed instead, for trying a build of your own.
 
 FROM docker.io/library/ubuntu:26.04
 
-ARG STRMQT_VERSION=0.9.2
+ARG STRMQT_RELEASE=v0.9.1-headless.1
+ARG STRMQT_DEB=
 ARG STRMQT_SHA256=
 ARG SUNSHINE_VERSION=2026.914.233613
 ARG SUNSHINE_SHA256=b8a8ceeeb2b3f30a18a994ad268c94e0c91170f33a864c7aad31eed927ad7d47
@@ -26,10 +30,11 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends ca-certificates curl; \
     cd /tmp/packages; \
     if ! ls strmqt_*.deb >/dev/null 2>&1; then \
-        test -n "$STRMQT_SHA256" || { echo "STRMQT_SHA256 is needed to download StrmQt $STRMQT_VERSION" >&2; exit 1; }; \
-        curl -fsSLo "strmqt_${STRMQT_VERSION}.deb" \
-            "https://github.com/mpengellyCA/strmQt-linux/releases/download/v${STRMQT_VERSION}/strmqt_${STRMQT_VERSION}-1.ubuntu26.04_amd64.deb"; \
-        echo "${STRMQT_SHA256}  strmqt_${STRMQT_VERSION}.deb" | sha256sum -c -; \
+        test -n "$STRMQT_DEB" && test -n "$STRMQT_SHA256" \
+            || { echo "STRMQT_DEB and STRMQT_SHA256 are needed to download StrmQt $STRMQT_RELEASE" >&2; exit 1; }; \
+        curl -fsSLo strmqt_release.deb \
+            "https://github.com/mpengellyCA/strmQt-linux/releases/download/${STRMQT_RELEASE}/$(printf %s "$STRMQT_DEB" | sed 's/+/%2B/g')"; \
+        echo "${STRMQT_SHA256}  strmqt_release.deb" | sha256sum -c -; \
     fi; \
     curl -fsSLo sunshine.deb \
         "https://github.com/LizardByte/Sunshine/releases/download/v${SUNSHINE_VERSION}/sunshine_${SUNSHINE_VERSION}-1%2Bubuntu26.04_amd64.deb"; \

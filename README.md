@@ -84,8 +84,10 @@ machine's own network (StrmLight finds the host by a broadcast; the stream is UD
 StrmQt's ports 8330–8356 on it. Everything the host keeps — pairings, the Emby sign-in,
 YouTube Music's cookies, Sunshine's certificate — is in the `strmqt-home` volume.
 
-**Bare metal** needs StrmQt 0.9.2 or newer, Sunshine (a 2026 release), KWin and
-PipeWire. `install` says what is missing in your distribution's words, then sets the host
+**Bare metal** needs a StrmQt with `strmqt admin`, Sunshine (a 2026 release), KWin and
+PipeWire. No StrmQt release has `strmqt admin` yet: it is on StrmQt's `headless` branch,
+whose experimental builds — for now only an Ubuntu 26.04 `.deb`, the one the image uses —
+are StrmQt's pre-releases named `v<version>-headless.<n>`. Elsewhere, build that branch. `install` says what is missing in your distribution's words, then sets the host
 up exactly as Settings → Streaming host would. For it to start at boot rather than at
 log-in, the user needs lingering: `sudo loginctl enable-linger USER` on the target.
 
@@ -149,7 +151,9 @@ On bare metal the same commands are `strmqt admin …`.
 ## The image
 
 `ghcr.io/mpengellyca/strmqt-headless` is Ubuntu 26.04 with StrmQt's and Sunshine's own
-release packages, each checked against the SHA-256 GitHub records for it. Inside, a
+release packages, each checked against the SHA-256 GitHub records for it. StrmQt's is an
+**experimental build** of its `headless` branch, which is StrmQt's main branch plus
+`strmqt admin`, kept in step with main, until that reaches a StrmQt release. Inside, a
 D-Bus session bus and a PipeWire stand in for a desktop session, and StrmQt runs its
 host in the foreground (`strmqt admin host run`): the same three services it writes for
 systemd anywhere else, started and restarted by StrmQt itself.

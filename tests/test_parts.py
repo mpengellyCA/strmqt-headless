@@ -116,7 +116,7 @@ class MethodsTest(unittest.TestCase):
         ubuntu = install_hints("ID=ubuntu\nID_LIKE=debian\n", ["pipewire", "wireplumber", "strmqt"])
         self.assertEqual(ubuntu[0], "sudo apt install pipewire wireplumber")
         self.assertEqual(install_hints("ID=debian\n", ["kwin_wayland"]), ["sudo apt install kwin-wayland kwin-common"])
-        self.assertIn("StrmQt 0.9.2", ubuntu[1])
+        self.assertIn("headless", ubuntu[1])
         self.assertEqual(install_hints("ID=fedora\n", ["kwin_wayland"]), ["sudo dnf install kwin-wayland"])
 
 
