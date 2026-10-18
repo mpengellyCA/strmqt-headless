@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "strmqtctl"
-version = "0.1.0"
+version = "0.1.1"
 description = "Administers StrmQt streaming hosts, in Docker or on bare metal, here or over SSH"
 readme = "README.md"
 license = "GPL-3.0-or-later"
