@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strmqtctl"
+version = "0.1.0"
+description = "Administers StrmQt streaming hosts, in Docker or on bare metal, here or over SSH"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.10"
+# The standard library only: strmqtctl runs on the administrator's computer,
+# whatever it is, and talks to hosts with the system's own ssh.
+dependencies = []
+
+[project.scripts]
+strmqtctl = "strmqtctl.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/mpengellyCA/strmqt-headless"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+strmqtctl = ["compose.yaml"]

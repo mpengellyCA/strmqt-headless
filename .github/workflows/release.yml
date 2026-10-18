@@ -1,0 +1,87 @@
+# A tag v<version> publishes the image and strmqtctl:
+#   ghcr.io/mpengellyca/strmqt-headless:<version>, :strmqt-<StrmQt version>, :latest
+# The StrmQt it carries is the Dockerfile's STRMQT_VERSION, fetched from that
+# StrmQt release and checked against the SHA-256 GitHub records for it.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Push the image and make the release (otherwise a dry run)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE: ghcr.io/mpengellyca/strmqt-headless
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          if [ "${GITHUB_REF_TYPE}" = tag ] && [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "The tag ${GITHUB_REF_NAME} is not pyproject.toml's version ${version}" >&2; exit 1
+          fi
+          strmqt=$(sed -n 's/^ARG STRMQT_VERSION=//p' docker/Dockerfile)
+          digest=$(gh api "repos/mpengellyCA/strmQt-linux/releases/tags/v${strmqt}" \
+            -q ".assets[] | select(.name == \"strmqt_${strmqt}-1.ubuntu26.04_amd64.deb\") | .digest")
+          [ -n "$digest" ] || { echo "StrmQt ${strmqt} has no Ubuntu 26.04 package" >&2; exit 1; }
+          {
+            echo "version=${version}"
+            echo "strmqt=${strmqt}"
+            echo "strmqt_sha256=${digest#sha256:}"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Tests
+        run: python -m unittest discover -s tests
+
+      - name: Build the image
+        run: |
+          docker build \
+            --build-arg STRMQT_VERSION=${{ steps.versions.outputs.strmqt }} \
+            --build-arg STRMQT_SHA256=${{ steps.versions.outputs.strmqt_sha256 }} \
+            -t "$IMAGE:${{ steps.versions.outputs.version }}" \
+            -t "$IMAGE:strmqt-${{ steps.versions.outputs.strmqt }}" \
+            -t "$IMAGE:latest" \
+            docker/
+
+      - name: The image's StrmQt has its administration
+        run: docker run --rm --entrypoint strmqt "$IMAGE:latest" admin help
+
+      - name: Build strmqtctl
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Publish
+        if: github.ref_type == 'tag' || inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for tag in "${{ steps.versions.outputs.version }}" "strmqt-${{ steps.versions.outputs.strmqt }}" latest; do
+            docker push "$IMAGE:$tag"
+          done
+          notes="docs/releases/${{ steps.versions.outputs.version }}.md"
+          gh release create "v${{ steps.versions.outputs.version }}" dist/* \
+            --title "strmqt-headless ${{ steps.versions.outputs.version }}" \
+            --notes-file "$notes"

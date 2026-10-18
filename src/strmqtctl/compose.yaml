@@ -1,0 +1,39 @@
+# StrmQt's streaming host in a container: a headless KWin with StrmQt on it,
+# and the Sunshine that streams that screen to StrmLight on a TV.
+#
+# `strmqtctl install` writes this file and an .env beside it. It works by
+# hand as well:
+#
+#   docker compose up -d
+#   docker compose exec strmqt strmqt admin status
+#   docker compose exec strmqt strmqt admin pair 1234
+#
+# Everything the host keeps — StrmQt's settings and Emby sign-in, Sunshine's
+# pairings and certificate, YouTube Music's cookies — is in the strmqt-home
+# volume. `docker compose down -v` forgets all of it.
+name: strmqt-headless
+
+services:
+  strmqt:
+    image: ghcr.io/mpengellyca/strmqt-headless:${STRMQT_HEADLESS_TAG:-latest}
+    restart: unless-stopped
+    # A StrmLight finds the host by a broadcast on the network, and
+    # Sunshine's stream is UDP: the machine's own network, not a bridge.
+    # StrmQt uses ports 8330-8356 on it.
+    network_mode: host
+    # The GPU, for KWin's screen and Sunshine's hardware encoder. The groups
+    # are the machine's, by number: whoever owns /dev/dri/renderD* there.
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-render}"
+      - "${VIDEO_GID:-video}"
+    # Qt WebEngine (YouTube, YouTube Music) needs more than Docker's 64 MB.
+    shm_size: 1gb
+    volumes:
+      - strmqt-home:/home/strmqt
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+
+volumes:
+  strmqt-home:

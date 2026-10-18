@@ -1,0 +1,7 @@
+__pycache__/
+*.egg-info/
+/build/
+/dist/
+.venv/
+# StrmQt packages dropped in for a local image build (docker/Dockerfile).
+/docker/packages/*.deb

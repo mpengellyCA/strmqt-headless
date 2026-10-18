@@ -1,0 +1,4 @@
+# The build context is this folder: docker build -t strmqt-headless docker/
+*
+!entrypoint.sh
+!packages/
