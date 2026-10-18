@@ -125,7 +125,8 @@ def install_hints(os_release: str, missing: list[str]) -> list[str]:
             names = {"kwin_wayland": "kwin-wayland", "pipewire": "pipewire", "wireplumber": "wireplumber"}
             hints.append("sudo dnf install " + " ".join(names[p] for p in system))
         elif "debian" in family or "ubuntu" in family:
-            names = {"kwin_wayland": "kwin-wayland", "pipewire": "pipewire", "wireplumber": "wireplumber"}
+            # KWin's screencast, which Sunshine captures, is in kwin-common.
+            names = {"kwin_wayland": "kwin-wayland kwin-common", "pipewire": "pipewire", "wireplumber": "wireplumber"}
             hints.append("sudo apt install " + " ".join(names[p] for p in system))
         else:
             hints.append("Install your distribution's packages for: " + ", ".join(system))

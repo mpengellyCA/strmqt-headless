@@ -172,6 +172,21 @@ docker build -t ghcr.io/mpengellyca/strmqt-headless:dev docker/
 strmqtctl install --tag dev --no-pull
 ```
 
+### Trying it beside a running host
+
+A machine that already runs a streaming host (StrmQt's own, from Settings) holds
+StrmQt's ports. To try the image there anyway, keep the container off the machine's
+network with a `compose.override.yaml` beside `compose.yaml` — StrmLight cannot find it
+then, but everything else works:
+
+```yaml
+services:
+  strmqt:
+    network_mode: bridge
+```
+
+and install with `--force`.
+
 ## Development
 
 ```
